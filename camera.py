@@ -10,7 +10,7 @@ class CameraProcessor:
     MEAN_TRESHOLD_FOR_BLACK_TILE = 30
     MEAN_TRESHOLD_FOR_OBSTACLE = 250
 
-    SIZE_TRESHOLD_FOR_VICTIM = 200
+    SIZE_TRESHOLD_FOR_VICTIM = 170
 
     # Threshold of sky in HSV space
     lower_blue = np.array([10, 0, 0])
@@ -166,6 +166,7 @@ class CameraProcessor:
         top_point = letter_image[int(h/10),int(w/2)] == 255
         middle_point = letter_image[int(h/10*5),int(w/2)] == 255
         lowest_point = letter_image[int(h/10*9),int(w/2)] == 255
+        print(cam_direction, self.front_counter)
         if top_point and middle_point and lowest_point:
             print("S")
             return self._rb.STABLE_VICTIM
@@ -206,7 +207,8 @@ class CameraProcessor:
     def filterContours(self, contours):
         quadContours = []
         for i, contour in enumerate(contours):
-            if cv2.contourArea(contour) < self.SIZE_TRESHOLD_FOR_VICTIM:
+            contourArea = cv2.contourArea(contour)
+            if contourArea < self.SIZE_TRESHOLD_FOR_VICTIM:
                 continue
             if len(contour) < 4:
                 continue
@@ -216,6 +218,9 @@ class CameraProcessor:
             for j, testcontour in enumerate(contours):
                 # check if contour is the same
                 if j == i:
+                    continue
+                # check if contour is smaller
+                if not (contourArea*0.2 < cv2.contourArea(testcontour) < contourArea*0.9):
                     continue
                 if(cv2.pointPolygonTest(contour,tuple(testcontour[0][0]), False) >= 0):
                     quadContours.append(contour)
