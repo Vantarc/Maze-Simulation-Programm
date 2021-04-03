@@ -52,7 +52,7 @@ class DriveController():
 
         distance_p_value = self.Kp_distance * distance_error
         distance_p_value = max(-1, min(1, distance_p_value))
-
+        print("Distance_p_value:", distance_p_value)
         angle_importance = 1
 
         if abs(angle_error) < self.min_error_for_driving_forward:
@@ -63,6 +63,7 @@ class DriveController():
         # apply pid controller to speed
         self._rb.setSpeed((angle_importance * -angle_p_value + distance_importance * distance_p_value) * self.MAX_SPEED,
                           (angle_importance *  angle_p_value + distance_importance * distance_p_value) * self.MAX_SPEED)
+        print("Speed" +  str((angle_importance * -angle_p_value + distance_importance * distance_p_value) * self.MAX_SPEED) + ":" + str((angle_importance *  angle_p_value + distance_importance * distance_p_value) * self.MAX_SPEED))
         return False
 
     def calculateAngleError(self):
@@ -99,6 +100,12 @@ class DriveController():
     def isFacingGoal(self):
         angle_error = self.calculateAngleError()
         if abs(angle_error) < math.pi / 32:
+            return True
+        return False
+
+    def onNewTile(self):
+        distance_error = calculateEucleadianDistance(self._goal_x, self._goal_y, self._rb.position_x, self._rb.position_y)
+        if distance_error < TILESIZE/1.5:
             return True
         return False
 

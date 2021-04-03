@@ -2,7 +2,7 @@ from utils import *
 import numpy as np
 import math
 
-MAP_SIZE = 20
+MAP_SIZE = 40
 
 MAP_LOGGING = False
 def logMap(map):
@@ -60,6 +60,7 @@ class Mapper:
     def __init__(self, robot) -> None:
         self._rb = robot
         self.map = Map()
+        self.victimList = []
 
     def processTile(self):
         tile_x, tile_y = getCellCoords(self._rb.position_x, self._rb.position_y)

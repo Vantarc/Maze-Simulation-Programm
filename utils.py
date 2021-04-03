@@ -1,5 +1,5 @@
 import math
-DEBUG = False
+DEBUG = True
 TILESIZE = 0.12
 def log(message, data=None):
     if DEBUG:

@@ -7,9 +7,9 @@ class MazeRobot():
 
     TEMPERATURE_TRESHOLD = 27
 
-    HARMED_VICTIM = "H"
-    STABLE_VICTIM = "S"
-    UNHARMED_VICTIM = "U"
+    HARMED_VICTIM = 'H'
+    STABLE_VICTIM = 'S'
+    UNHARMED_VICTIM = 'U'
     HEATED_VICTIM = 'T'
 
 

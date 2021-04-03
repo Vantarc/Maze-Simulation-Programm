@@ -18,6 +18,7 @@ dc.correctRotation()
     
 dc.setGoal(0,0)
 scannedNextTile = False
+scannedForVictimSecondTime = False
 
 def getNextGoal(force_recalculation=False):
     goal = pf.getNextGoal()
@@ -31,21 +32,27 @@ while robot.update():
     # get new goal if current goal is reached
     if dc.update():
         mp.processTile()
+        vh.updateOnGoalReached()
         scannedNextTile = False
-
+        scannedForVictimSecondTime = False
         # exit maze if finished
         if getNextGoal():
             robot.exit_maze()
 
+    if dc.onNewTile() and not scannedForVictimSecondTime:
+        scannedForVictimSecondTime = True
+        vh.updateOnEnteredNewTile()
+
+
     # scan tile for black tile 
     if dc.isFacingGoal() and not scannedNextTile:
         log("----")
-        log("Scanning next tile")
+        vh.updateOnIsFacingGoal()
+
         if cp.isNextTileImpassable():
             mp.blackTileIsAhead()
             getNextGoal(True)
             continue
-        log("Nothing found")
         scannedNextTile = True
         log("----")
     vh.update()
