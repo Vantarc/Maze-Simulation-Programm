@@ -12,6 +12,8 @@ class MazeRobot():
     UNHARMED_VICTIM = 'U'
     HEATED_VICTIM = 'T'
 
+    PROGRAM_EXITED = 0
+    PROGRAM_RUNNING = 1
 
     def __init__(self) -> None:
         # Simulation time step and the maximum velocity of the robot
@@ -116,8 +118,6 @@ class MazeRobot():
         self.is_victim_left = False
         
         self.distance_sensor_values = [0]*8
-        
-        self.program_start = self._robot.getTime()
 
         self.ground_color = None
         self.right_camera_data = None
@@ -133,7 +133,7 @@ class MazeRobot():
         self._wheel_right.setVelocity(self._speed_right)
 
         if self._robot.step(self.timeStep) == -1:
-            return False
+            return self.PROGRAM_EXITED
         
         self._last_position_x = self.position_x
         self._last_position_y = self.position_y
@@ -169,10 +169,7 @@ class MazeRobot():
         self.right_camera_data = self._right_camera.getImage()
         self.front_camera_data = self._front_camera.getImage()
         self.left_camera_data = self._left_camera.getImage()
-        return True
-
-    def getRuntime(self) -> float:
-        return self._robot.getTime() - self.program_start
+        return self.PROGRAM_RUNNING
 
     def reportVictim(self, type):
         position = self._gps.getValues()

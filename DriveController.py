@@ -3,6 +3,8 @@ import math
 
 class DriveController():
 
+    GOAL_REACHED = 1
+    DRIVING_TO_GOAL = 0
     DRIVING_PRECISION = 0.005
     MAX_SPEED = 6.28
     CORRECT_ROTATION_RATE = 5
@@ -10,7 +12,6 @@ class DriveController():
     Kp_angle = 4
     Kp_distance = 40
     
-    # TODO: on swamps leave this at pi/32 but normally to pi/8
     min_error_for_driving_forward = math.pi/ 32
 
     def __init__(self, robot) -> None:
@@ -29,7 +30,6 @@ class DriveController():
         
 
     def update(self):
-        """Returns false if goal not reached and true if goal is reached"""
 
         distance_error = calculateEucleadianDistance(self._goal_x, self._goal_y, self._rb.position_x, self._rb.position_y)
         
@@ -40,7 +40,7 @@ class DriveController():
 
         if self.isGoalReached():
             self._rb.setSpeed(0,0)
-            return True
+            return self.GOAL_REACHED
         
         # calculate goal angle error
         angle_error = self.calculateAngleError()
@@ -52,7 +52,6 @@ class DriveController():
 
         distance_p_value = self.Kp_distance * distance_error
         distance_p_value = max(-1, min(1, distance_p_value))
-        print("Distance_p_value:", distance_p_value)
         angle_importance = 1
 
         if abs(angle_error) < self.min_error_for_driving_forward:
@@ -63,8 +62,7 @@ class DriveController():
         # apply pid controller to speed
         self._rb.setSpeed((angle_importance * -angle_p_value + distance_importance * distance_p_value) * self.MAX_SPEED,
                           (angle_importance *  angle_p_value + distance_importance * distance_p_value) * self.MAX_SPEED)
-        print("Speed" +  str((angle_importance * -angle_p_value + distance_importance * distance_p_value) * self.MAX_SPEED) + ":" + str((angle_importance *  angle_p_value + distance_importance * distance_p_value) * self.MAX_SPEED))
-        return False
+        return "False"
 
     def calculateAngleError(self):
         distances_to_goal = [self._goal_x - self._rb.position_x, self._goal_y - self._rb.position_y]
@@ -103,11 +101,9 @@ class DriveController():
             return True
         return False
 
-    def onNewTile(self):
-        distance_error = calculateEucleadianDistance(self._goal_x, self._goal_y, self._rb.position_x, self._rb.position_y)
-        if distance_error < TILESIZE/1.5:
-            return True
-        return False
+    def getDistanceFromGoal(self):
+        return calculateEucleadianDistance(self._goal_x, self._goal_y, self._rb.position_x, self._rb.position_y)
+
 
     def standStill(self, seconds):
         self._rb.setSpeed(0,0)

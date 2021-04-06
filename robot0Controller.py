@@ -21,40 +21,52 @@ scannedNextTile = False
 scannedForVictimSecondTime = False
 
 def getNextGoal(force_recalculation=False):
+    # plan path
     goal = pf.getNextGoal()
-    if goal == "FINISHED":
-        return True
-    dc.setGoal(goal[0]* TILESIZE, goal[1]* TILESIZE)
-    return False
 
-while robot.update():
+    # if path planner doesn't find a goal return "FINISHED"
+    if goal == "FINISHED":
+        return goal
+    
+    # set goal in drivemanager
+    dc.setGoal(goal[0]* TILESIZE, goal[1]* TILESIZE)
+    return "RUNNING"
+
+# main loop of the simulation
+while robot.update() == robot.PROGRAM_RUNNING:
 
     # get new goal if current goal is reached
-    if dc.update():
+    if dc.update() == dc.GOAL_REACHED:
+        # update map
         mp.processTile()
+
+        # process detected victims
         vh.updateOnGoalReached()
+        
         scannedNextTile = False
         scannedForVictimSecondTime = False
-        # exit maze if finished
-        if getNextGoal():
+
+        # get next goal or exit maze if finished
+        if getNextGoal() == "FINISHED":
             robot.exit_maze()
 
-    if dc.onNewTile() and not scannedForVictimSecondTime:
+    # search for victims a second time
+    if dc.getDistanceFromGoal() < TILESIZE/1.5 and not scannedForVictimSecondTime:
         scannedForVictimSecondTime = True
         vh.updateOnEnteredNewTile()
+        cp.saveImages()
 
-
-    # scan tile for black tile 
+    # scan tile for black tile and for victims if robot is facing to the goal for the first time
     if dc.isFacingGoal() and not scannedNextTile:
-        log("----")
         vh.updateOnIsFacingGoal()
-
+        cp.saveImages()
+        
+        # recalculate path if next tile is impassable
         if cp.isNextTileImpassable():
             mp.blackTileIsAhead()
             getNextGoal(True)
             continue
         scannedNextTile = True
-        log("----")
     vh.update()
 
 log("stop Program")
