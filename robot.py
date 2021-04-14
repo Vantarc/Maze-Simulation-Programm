@@ -6,6 +6,12 @@ from utils import *
 class MazeRobot():
 
     TEMPERATURE_TRESHOLD = 27
+    
+    SWAMP_VELOCITY_LOWER_LIMIT = 0.0012
+    SWAMP_VELOCITY_UPPER_LIMIT = 0.0014
+    SWAMP_COUNTER_TRESHOLD = 10
+
+    LOP_VELOCITY_TRESHOLD = 0.01
 
     HARMED_VICTIM = 'H'
     STABLE_VICTIM = 'S'
@@ -119,11 +125,14 @@ class MazeRobot():
         self.is_victim_left = False
         
         self.distance_sensor_values = [0]*8
-
+        self.swampCounter = 0
+        self.isInSwamp = False
         self.ground_color = None
         self.right_camera_data = None
         self.front_camera_data = None
         self.left_camera_data = None
+
+        self._start_time = self._robot.getTime()
 
     def setSpeed(self,right_speed, left_speed):
         self._speed_right, self._speed_left = right_speed, left_speed
@@ -163,8 +172,18 @@ class MazeRobot():
         self.robot_velocity[2] = calculateEucleadianDistance(self.position_x, self.position_y, self._last_position_x, self._last_position_y)
         self.robot_velocity[3] = self.rotation - self._last_rotation
 
+        # check for swamp
+        self.isInSwamp = False
+        if self.SWAMP_VELOCITY_LOWER_LIMIT<self.robot_velocity[2] < self.SWAMP_VELOCITY_UPPER_LIMIT:
+            self.swampCounter += 1
+        elif self.robot_velocity[2] > self.SWAMP_VELOCITY_UPPER_LIMIT:
+            self.swampCounter = 0
+        if self.swampCounter == self.SWAMP_COUNTER_TRESHOLD:
+
+            self.isInSwamp = True
+
         # check for LoP
-        if self.robot_velocity[2]>0.01:
+        if self.robot_velocity[2]>self.LOP_VELOCITY_TRESHOLD:
             self.LoP = True
         # sensor values
         self.is_victim_right = self._right_heat_sensor.getValue() > self.TEMPERATURE_TRESHOLD
@@ -200,3 +219,10 @@ class MazeRobot():
         start_time = self._robot.getTime()
         while(self._robot.getTime() - start_time < seconds):
             self.update()
+
+    def getElapsedTime(self):
+        return self._robot.getTime() - self._start_time
+
+    def resetTime(self):
+        self._start_time = self._robot.getTime()
+        

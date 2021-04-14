@@ -7,7 +7,7 @@ class DriveController():
     DRIVING_TO_GOAL = 0
     DRIVING_PRECISION = 0.005
     MAX_SPEED = 6.28
-    CORRECT_ROTATION_RATE = 5
+    CORRECT_ROTATION_RATE = 10
     # PID controller consts
     Kp_angle = 4
     Kp_distance = 100

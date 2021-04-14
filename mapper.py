@@ -1,7 +1,7 @@
 from utils import *
 import numpy as np
 
-MAP_SIZE = 50
+MAP_SIZE = 32
 
 MAP_LOGGING = False
 def logMap(map):
@@ -37,7 +37,8 @@ def logMap(map):
                         output += "\u001b[47;31m  \u001b[0m\u001b[37m"
                     elif map.getGroundStateWithoutTileOffset(int(line / 2),row) == Map.HOLE:
                         output += "\u001b[41;31m  \u001b[0m\u001b[37m"
-
+                    elif map.getGroundStateWithoutTileOffset(int(line / 2),row) == Map.SWAMP:
+                        output += "\u001b[43;31m  \u001b[0m\u001b[37m"
                     else:
                         output += "  "
                     if map.getWallsWithoutTileOffset(int(line / 2),row)[Map.EAST]:
@@ -75,7 +76,9 @@ class Mapper:
         walls = np.roll(walls, getDirection(self._rb.rotation))
         
         self.map.setWalls(tile_x, tile_y, walls[0], walls[1], walls[2], walls[3])
-        self.map.setGroundState(tile_x, tile_y, Map.NORMAL)
+        # if map is unexplored set explored
+        if self.map.getGroundState(tile_x, tile_y) == Map.UNEXPLORED:
+            self.map.setGroundState(tile_x, tile_y, Map.NORMAL)
         logMap(self.map)
         
 
@@ -98,6 +101,12 @@ class Mapper:
         self.map.setWalls(tile_x, tile_y, True, True, True, True)
 
         logMap(self.map)
+    
+    def currentTileIsSwamp(self):
+        print("SWAAAAAAAAAAAAAAAAAAAAAMP")
+        tile_x, tile_y = getCellCoords(self._rb.position_x, self._rb.position_y)
+        self.map.setGroundState(tile_x, tile_y, Map.SWAMP)
+        print(self.map.getGroundState(5,3))
 
 class Map:
     # indices of fields of tile

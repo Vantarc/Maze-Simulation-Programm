@@ -1,4 +1,5 @@
 
+from numpy import tile
 from Heap import Heap
 from utils import *
 from mapper import Map
@@ -156,6 +157,12 @@ class BreadthFirstSearch:
 
 class Dijkstras:
     
+    # COSTS IN MS
+    FORWARD_COST = 115
+    FORWARD_COST_SWAMP = 300
+    TURN_COST = 45
+    TURN_COST_SWAMP = 150
+
     NO_PATH = -1
     FINISHED = 0
     RUNNING = 1
@@ -209,22 +216,32 @@ class Dijkstras:
                     tileWithShortestDistance = [processedTileX,processedTileY]
                 # jump to next Tile in queue because unexplored can't have neighbours
                 continue
+            
+            # set current orientation for use in cost calculation instead of previous tile
+            currentOrientation = getDirection(self._rb.rotation)
+            previous_tile = None
+            if not(tile_x == processedTileX and tile_y == processedTileY):
+                currentOrientation = None
+                previous_tile = previous[(processedTileX, processedTileY)]
 
             # add next tiles to queue
             for nextTileX, nextTileY in self.getNeighbors(processedTileX, processedTileY):
                 # add next tile if not already processed
-                if [nextTileX, nextTileY] not in visited:
-                    # TODO: calculateDistance
-                    travelDistance = 10
-                    visited.append([nextTileX, nextTileY])
-                    self.heap.addTile(nextTileX,nextTileY, distance+travelDistance)
-                    previous[(nextTileX,nextTileY)] = [processedTileX,processedTileY]
+                if [nextTileX, nextTileY] in visited:
+                    continue
+                
+                # calculate Cost
+                travelCost = self.getCost(previous_tile,[processedTileX,processedTileY], [nextTileX,nextTileY], currentOrientation)
+
+                visited.append([nextTileX, nextTileY])
+
+                self.heap.addTile(nextTileX,nextTileY, distance+travelCost)
+                previous[(nextTileX,nextTileY)] = [processedTileX,processedTileY]
         
         # reconstruct path
         path = []
         x = tileWithShortestDistance[0]
         y = tileWithShortestDistance[1]
-        log(f"{x} : {y}")
         while True:
             if x == tile_x and y == tile_y:
                 break
@@ -233,6 +250,37 @@ class Dijkstras:
 
         path.reverse()
         self.path = path    
+
+    def getCost(self,previous_tile, current_tile, next_tile, current_orient):
+        # calculate current orientation
+        if previous_tile != None:
+            current_orient = self.getOrientation(previous_tile, current_tile)
+        
+        # calculate orientation after driving to next_tile
+        next_orient = self.getOrientation(current_tile, next_tile)
+
+        is_current_swamp = self._map.getGroundState(current_tile[0], current_tile[1]) == Map.SWAMP
+        is_next_swamp = self._map.getGroundState(next_tile[0], next_tile[1]) == Map.SWAMP
+
+        # calculate turn cost
+        turn_cost = abs(next_orient-current_orient)
+        if turn_cost > 2: turn_cost - 2
+        
+        if is_current_swamp: turn_cost *= self.TURN_COST_SWAMP
+        # calculate forward cost by adding half the cost of both tiles together
+        forward_cost = ([self.FORWARD_COST, self.FORWARD_COST_SWAMP][is_current_swamp] + [self.FORWARD_COST, self.FORWARD_COST_SWAMP][is_next_swamp])/2
+
+        return turn_cost + forward_cost
+
+    def getOrientation(self, from_tile, to_tile):
+        if from_tile[0] < to_tile[0]:
+            return 0
+        if from_tile[1] < to_tile[1]:
+            return 1
+        if from_tile[0] > to_tile[0]:
+            return 2
+        if from_tile[1] > to_tile[1]:
+            return 3
 
     def getNeighbors(self, x, y):
         walls = self._map.getWalls(x,y)

@@ -34,6 +34,8 @@ while robot.update() == robot.PROGRAM_RUNNING:
         robot.LoP = False
         dc.correctRotation()
         getNextGoal(True)
+    if robot.isInSwamp:
+        mp.currentTileIsSwamp()
     # get new goal if current goal is reached
     if dc.update() == dc.GOAL_REACHED:
         # update map
@@ -59,7 +61,7 @@ while robot.update() == robot.PROGRAM_RUNNING:
     if dc.isFacingGoal() and not scannedNextTile:
         vh.updateOnIsFacingGoal()
         cp.saveImages()
-        
+
         # recalculate path if next tile is impassable
         if cp.isNextTileImpassable():
             mp.blackTileIsAhead()
