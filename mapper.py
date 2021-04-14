@@ -63,7 +63,7 @@ class Mapper:
 
     def processTile(self):
         tile_x, tile_y = getCellCoords(self._rb.position_x, self._rb.position_y)
-        log("Process Tile:" + str(tile_x) + ", " + str(tile_y))
+        #log("Process Tile:" + str(tile_x) + ", " + str(tile_y))
 
         walls = np.zeros(4,int)
         walls[0] = int(self._rb.distance_sensor_values[0]<self.WALL_DISTANCE_TRESHOLD)

@@ -1,4 +1,5 @@
 
+from Heap import Heap
 from utils import *
 from mapper import Map
 from queue import Queue
@@ -139,6 +140,100 @@ class BreadthFirstSearch:
                     previous[(nextTile[0],nextTile[1])] = processedTile
         return 'NO_PATH'
     
+    def getNeighbors(self, x, y):
+        walls = self._map.getWalls(x,y)
+        neighbors = []
+        if walls[Map.NORTH] == Map.EMPTY:
+            neighbors.append([x + 1, y])
+        if walls[Map.EAST] == Map.EMPTY:
+            neighbors.append([x, y + 1])
+        if walls[Map.SOUTH] == Map.EMPTY:
+            neighbors.append([x - 1, y])
+        if walls[Map.WEST] == Map.EMPTY:
+            neighbors.append([x, y - 1])
+        
+        return neighbors
+
+class Dijkstras:
+    
+    NO_PATH = -1
+    FINISHED = 0
+    RUNNING = 1
+
+    def __init__(self, robot, map) -> None:
+        self._rb = robot
+        self._map = map.map
+        
+
+        self.last_goal_x = 0
+        self.last_goal_y = 0
+        self.path = []
+
+        self.heap = Heap((self._map.map_size,self._map.map_size))
+
+    def getNextGoal(self, force_new_goal = False):
+
+        tile_x, tile_y = getCellCoords(self._rb.position_x, self._rb.position_y)
+
+        # calculate the next tile to pathfind to if the current goal is reached, the next goal couldn't be reached or a recalculation is forced
+        if len(self.path) == 0 or  not (tile_x == self.last_goal_x and tile_y == self.last_goal_y) or force_new_goal:
+
+            self.calculatePath()
+            # if no more goal is found and the robot is standing on the start tile, the run is ended
+            if len(self.path) == 0:
+                return self.FINISHED, (0,0)
+
+        # get next step
+        step = self.path.pop(0)
+        # set last goal
+        self.last_goal_x, self.last_goal_y = step
+        return self.RUNNING, step
+
+    def calculatePath(self):
+        tile_x, tile_y = getCellCoords(self._rb.position_x, self._rb.position_y)
+
+        self.heap.reset()
+        self.heap.addTile(tile_x,tile_y,10000)
+        visited = [[tile_x,tile_y]]
+        previous = {}
+        shortestDistance = float("inf")
+        tileWithShortestDistance = [0,0]
+
+        while not self.heap.isEmpty():
+            # get next Tile in queue
+            processedTileX, processedTileY, distance = self.heap.getFirstTile()
+            # if tile is unvisited calculate distance
+            if self._map.getGroundState(processedTileX, processedTileY) == Map.UNEXPLORED:
+                if distance < shortestDistance:
+                    shortestDistance = distance
+                    tileWithShortestDistance = [processedTileX,processedTileY]
+                # jump to next Tile in queue because unexplored can't have neighbours
+                continue
+
+            # add next tiles to queue
+            for nextTileX, nextTileY in self.getNeighbors(processedTileX, processedTileY):
+                # add next tile if not already processed
+                if [nextTileX, nextTileY] not in visited:
+                    # TODO: calculateDistance
+                    travelDistance = 10
+                    visited.append([nextTileX, nextTileY])
+                    self.heap.addTile(nextTileX,nextTileY, distance+travelDistance)
+                    previous[(nextTileX,nextTileY)] = [processedTileX,processedTileY]
+        
+        # reconstruct path
+        path = []
+        x = tileWithShortestDistance[0]
+        y = tileWithShortestDistance[1]
+        log(f"{x} : {y}")
+        while True:
+            if x == tile_x and y == tile_y:
+                break
+            path.append((x,y))
+            x,y = previous[(x,y)]
+
+        path.reverse()
+        self.path = path    
+
     def getNeighbors(self, x, y):
         walls = self._map.getWalls(x,y)
         neighbors = []

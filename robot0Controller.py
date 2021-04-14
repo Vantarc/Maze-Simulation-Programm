@@ -1,5 +1,5 @@
 from victimHandler import VictimHandler
-from Pathfinding import BreadthFirstSearch
+from Pathfinding import BreadthFirstSearch, Dijkstras
 from numpy import tile
 from robot import *
 from utils import *
@@ -11,7 +11,7 @@ robot = MazeRobot()
 dc = DriveController(robot)
 mp = Mapper(robot)
 cp = CameraProcessor(robot)
-pf = BreadthFirstSearch(robot, mp)
+pf = Dijkstras(robot, mp)
 vh = VictimHandler(robot, mp, dc, cp)
    
 dc.setGoal(0,0)
