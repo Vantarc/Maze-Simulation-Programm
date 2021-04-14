@@ -5,6 +5,9 @@ from queue import Queue
 
 class Pathfinder:
 
+    NO_PATH = -1
+    FINISHED = 0
+    RUNNING = 1
     def __init__(self, robot, map) -> None:
         self._rb = robot
         self._map = map.map
@@ -14,16 +17,18 @@ class Pathfinder:
     def getNextGoal(self, force_new_goal = False):
         tile_x, tile_y = getCellCoords(self._rb.position_x, self._rb.position_y)
 
-
+        # calculate the next tile to pathfind to if the current tile is reached, the next goal is a black tile or a recalculation is forced
         if tile_x == self.next_goal_x and tile_y == self.next_goal_y or self._map.getGroundState(self.next_goal_x,self.next_goal_y) == Map.HOLE or force_new_goal:
             self.next_goal_x, self.next_goal_y = self.getNearestTileFromRobot()
+
+            # if no more goal is found and the robot is standing on the start tile, the run is ended
             if tile_x == self.next_goal_x == 0 and tile_y == self.next_goal_y == 0:
-                return "FINISHED"
+                return self.FINISHED, (0,0)
         
         step = self.getNextStep()
-        if step == 'NO_PATH':
+        if step == self.NO_PATH:
             return self.getNextGoal(force_new_goal=True)
-        return step
+        return self.RUNNING, step
 
 
     def getFurthestTileFromStart(self):
@@ -133,6 +138,7 @@ class Pathfinder:
                     queue.put(nextTile)
                     previous[(nextTile[0],nextTile[1])] = processedTile
         return 'NO_PATH'
+    
     def getNeighbors(self, x, y):
         walls = self._map.getWalls(x,y)
         neighbors = []

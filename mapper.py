@@ -1,8 +1,7 @@
 from utils import *
 import numpy as np
-import math
 
-MAP_SIZE = 40
+MAP_SIZE = 50
 
 MAP_LOGGING = False
 def logMap(map):

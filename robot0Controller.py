@@ -13,28 +13,27 @@ mp = Mapper(robot)
 cp = CameraProcessor(robot)
 pf = Pathfinder(robot, mp)
 vh = VictimHandler(robot, mp, dc, cp)
-
-dc.correctRotation()
-    
+   
 dc.setGoal(0,0)
 scannedNextTile = False
 scannedForVictimSecondTime = False
 
 def getNextGoal(force_recalculation=False):
     # plan path
-    goal = pf.getNextGoal()
+    status, goal = pf.getNextGoal(force_recalculation)
 
     # if path planner doesn't find a goal return "FINISHED"
-    if goal == "FINISHED":
-        return goal
-    
+    if status == pf.RUNNING:
+        dc.setGoal(goal[0]* TILESIZE, goal[1]* TILESIZE)
     # set goal in drivemanager
-    dc.setGoal(goal[0]* TILESIZE, goal[1]* TILESIZE)
-    return "RUNNING"
+    return status
 
 # main loop of the simulation
 while robot.update() == robot.PROGRAM_RUNNING:
-
+    if robot.LoP:
+        robot.LoP = False
+        dc.correctRotation()
+        getNextGoal(True)
     # get new goal if current goal is reached
     if dc.update() == dc.GOAL_REACHED:
         # update map
@@ -47,10 +46,10 @@ while robot.update() == robot.PROGRAM_RUNNING:
         scannedForVictimSecondTime = False
 
         # get next goal or exit maze if finished
-        if getNextGoal() == "FINISHED":
+        if getNextGoal() == pf.FINISHED:
             robot.exit_maze()
 
-    # search for victims a second time
+    # search for victims a second time if ca. in middle of tile
     if dc.getDistanceFromGoal() < TILESIZE/1.5 and not scannedForVictimSecondTime:
         scannedForVictimSecondTime = True
         vh.updateOnEnteredNewTile()

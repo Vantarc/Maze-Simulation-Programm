@@ -4,6 +4,8 @@ from utils import *
 import math
 class VictimHandler:
 
+    WAIT_TIME_AT_VICTIM = 3.1
+
     def __init__(self, robot, mapper, driveController, cameraProcessor) -> None:
         self._rb = robot
         self._map = mapper.map
@@ -22,11 +24,11 @@ class VictimHandler:
         if self._rb.is_victim_right:
             if self._map.getWalls(tile_x, tile_y)[direction-3] == Map.WALL:
                 self._rb.reportVictim(self._rb.HEATED_VICTIM)
-                self._dc.standStill(3)
+                self._dc.standStill(self.WAIT_TIME_AT_VICTIM)
         elif self._rb.is_victim_left:
             if self._map.getWalls(tile_x, tile_y)[direction-1] == Map.WALL:
                 self._rb.reportVictim(self._rb.HEATED_VICTIM)
-                self._dc.standStill(3)
+                self._dc.standStill(self.WAIT_TIME_AT_VICTIM)
 
     def updateOnIsFacingGoal(self):
         right = self._cp.scanRight()
@@ -44,7 +46,7 @@ class VictimHandler:
         if self.victimOnNextTile and not (tile_x,tile_y) in self.tilesWithVisual:
             log(f"Visual victim {self.victimType} on this tile")
             self._rb.reportVictim(self.victimType)
-            self._dc.standStill(3)
+            self._dc.standStill(self.WAIT_TIME_AT_VICTIM)
             self.tilesWithVisual.append((tile_x,tile_y))
 
         self.victimOnNextTile = False

@@ -95,9 +95,10 @@ class MazeRobot():
         self._emitter = self._robot.getEmitter("emitter")
 
     def _initialize_variables(self):
-
+        self.LoP = False
         self.max_velocity = 6.28
-
+        # [x,y,euclidean, rot]
+        self.robot_velocity = [0,0,0,0]
         # speed and position
         self._speed_right = 0
         self._speed_left = 0
@@ -107,7 +108,7 @@ class MazeRobot():
 
         self._last_position_x = 0
         self._last_position_y = 0
-
+        self._last_rotation = 0
         self._position_offset_x = 0
         self._position_offset_y = 0
         
@@ -135,13 +136,17 @@ class MazeRobot():
         if self._robot.step(self.timeStep) == -1:
             return self.PROGRAM_EXITED
         
+        # save rotation and position from last frame
         self._last_position_x = self.position_x
         self._last_position_y = self.position_y
-        
+        self._last_rotation = self.rotation
+
+        # set new position
         gps_values = self._gps.getValues()
         self.position_x = gps_values[0] - self._position_offset_x
         self.position_y = gps_values[2] - self._position_offset_y
 
+        # calculate new rotation
         self.rotation -= self._gyro.getValues()[0] * (self.timeStep / 1000)
         if   self.rotation >  math.pi: self.rotation -= 2 * math.pi
         elif self.rotation < -math.pi: self.rotation += 2 * math.pi
@@ -152,6 +157,15 @@ class MazeRobot():
                                                     self.position_x - self._last_position_x)
             self.rotation = calculated_rotation_by_gps
 
+        # calculate velocity
+        self.robot_velocity[0] = self.position_x - self._last_position_x
+        self.robot_velocity[1] = self.position_y - self._last_position_y
+        self.robot_velocity[2] = calculateEucleadianDistance(self.position_x, self.position_y, self._last_position_x, self._last_position_y)
+        self.robot_velocity[3] = self.rotation - self._last_rotation
+
+        # check for LoP
+        if self.robot_velocity[2]>0.01:
+            self.LoP = True
         # sensor values
         self.is_victim_right = self._right_heat_sensor.getValue() > self.TEMPERATURE_TRESHOLD
         self.is_victim_left = self._left_heat_sensor.getValue() > self.TEMPERATURE_TRESHOLD
@@ -172,12 +186,13 @@ class MazeRobot():
         return self.PROGRAM_RUNNING
 
     def reportVictim(self, type):
+        log("Report Victim: ", type)
         position = self._gps.getValues()
         message = struct.pack('i i c', int(position[0] * 100), int(position[2] * 100), type.encode())
         self._emitter.send(message)
 
     def exit_maze(self):
-        log("Git Exit bonus")
+        log("Get Exit bonus")
         message = struct.pack('i i c', 0, 0, 'E'.encode())
         self._emitter.send(message)
     

@@ -10,7 +10,7 @@ class CameraProcessor:
     MEAN_TRESHOLD_FOR_BLACK_TILE = 30
     MEAN_TRESHOLD_FOR_OBSTACLE = 250
 
-    SIZE_TRESHOLD_FOR_VICTIM = 170
+    SIZE_TRESHOLD_FOR_VICTIM = 150
 
     # Threshold of sky in HSV space
     lower_blue = np.array([10, 0, 0])

@@ -10,7 +10,7 @@ class DriveController():
     CORRECT_ROTATION_RATE = 5
     # PID controller consts
     Kp_angle = 4
-    Kp_distance = 40
+    Kp_distance = 100
     
     min_error_for_driving_forward = math.pi/ 32
 
@@ -35,7 +35,6 @@ class DriveController():
         
         if self.goal_counter_for_correcting_rotation >= self.CORRECT_ROTATION_RATE:
             self.correctRotation()
-            self.goal_counter_for_correcting_rotation = 0
 
 
         if self.isGoalReached():
@@ -52,6 +51,8 @@ class DriveController():
 
         distance_p_value = self.Kp_distance * distance_error
         distance_p_value = max(-1, min(1, distance_p_value))
+        #distance_p_value = 1
+        
         angle_importance = 1
 
         if abs(angle_error) < self.min_error_for_driving_forward:
@@ -83,6 +84,7 @@ class DriveController():
         return angle_error
 
     def correctRotation(self):
+        self.goal_counter_for_correcting_rotation = 0
         self._rb.setSpeed(3,3)
         self._rb.sleep(0.2)
         self._rb.setSpeed(-3,-3)
