@@ -3,7 +3,7 @@ from utils import *
 from mapper import Map
 from queue import Queue
 
-class Pathfinder:
+class BreadthFirstSearch:
 
     NO_PATH = -1
     FINISHED = 0
