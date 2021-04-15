@@ -44,7 +44,7 @@ class DriveController():
         # calculate goal angle error
         angle_error = self.calculateAngleError()
 
-        # pid controllerls
+        # pid controllers
 
         angle_p_value = self.Kp_angle * angle_error
         angle_p_value = max(-1, min(1, angle_p_value))
