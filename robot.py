@@ -108,6 +108,7 @@ class MazeRobot():
         # speed and position
         self._speed_right = 0
         self._speed_left = 0
+        self.lastFrameTime = self.robot.getTime()
 
         self.position_x = 0
         self.position_y = 0
@@ -156,7 +157,7 @@ class MazeRobot():
         self.position_y = gps_values[2] - self._position_offset_y
 
         # calculate new rotation
-        self.rotation -= self._gyro.getValues()[0] * (self.timeStep / 1000)
+        self.rotation -= self._gyro.getValues()[0] * (self.robot.getTime() - self.lastFrameTime)
         if   self.rotation >  math.pi: self.rotation -= 2 * math.pi
         elif self.rotation < -math.pi: self.rotation += 2 * math.pi
 
